@@ -40,6 +40,13 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
+import android.os.Build;
+
+import androidx.core.app.NotificationCompat;
+
 
 public class UploadWorker extends ListenableWorker implements CountProgressListener {
   public static final String ARG_URL = "url";
@@ -63,6 +70,8 @@ public class UploadWorker extends ListenableWorker implements CountProgressListe
   private static final String TAG = UploadWorker.class.getSimpleName();
   private static final int UPDATE_STEP = 0;
   private static final int DEFAULT_ERROR_STATUS_CODE = 500;
+  private static final String CHANNEL_ID = "upload_channel";
+  private static final int NOTIFICATION_ID = 1234;
 
   private String tag;
   private Call call;
@@ -74,6 +83,8 @@ public class UploadWorker extends ListenableWorker implements CountProgressListe
     super(context, workerParams);
     this.backgroundExecutor = UploadExecutorService.getExecutorService(context);
     this.context = context;
+    createNotificationChannel();
+
   }
 
   @Nullable private static FlutterEngine engine;
@@ -328,6 +339,36 @@ public class UploadWorker extends ListenableWorker implements CountProgressListe
     }
   }
 
+   private void updateProgressNotification(int progress) {
+    NotificationCompat.Builder builder =
+        new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
+            .setContentTitle("Uploading file")
+            .setContentText("Upload in progress")
+            .setSmallIcon(android.R.drawable.stat_sys_upload)
+            .setProgress(100, progress, false)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true);
+
+    NotificationManager notificationManager =
+        (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+    notificationManager.notify(NOTIFICATION_ID, builder.build());
+  }
+
+  private void createNotificationChannel() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      NotificationManager notificationManager =
+          (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+
+      NotificationChannel channel =
+          new NotificationChannel(
+              CHANNEL_ID,
+              "Upload Progress",
+              NotificationManager.IMPORTANCE_LOW);
+      channel.setDescription("Notifications for file upload progress");
+      notificationManager.createNotificationChannel(channel);
+    }
+  }
+
   private File writeResponseToTemporaryFile(Context context, String body) {
     FileOutputStream fos = null;
     try {
@@ -460,7 +501,7 @@ public class UploadWorker extends ListenableWorker implements CountProgressListe
 
     double p = ((double) bytesWritten / (double) contentLength) * 100;
     int progress = (int) Math.round(p);
-
+ updateProgressNotification(progress);
     Log.d(
         TAG,
         "taskId: "
@@ -520,3 +561,4 @@ public class UploadWorker extends ListenableWorker implements CountProgressListe
     return output.toArray(new String[0]);
   }
 }
+
