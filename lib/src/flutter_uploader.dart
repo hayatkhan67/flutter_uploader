@@ -1,4 +1,4 @@
-part of flutter_uploader;
+part of '../flutter_uploader.dart';
 
 /// Controls task scheduling and allows developers to observe the status.
 /// The class is designed as a singleton and can therefore be instantiated as
@@ -99,6 +99,8 @@ class FlutterUploader {
   ///
   /// See [MultipartFormDataUpload], [RawUpload] for available configuration.
   Future<String> enqueue(Upload upload) async {
+    log(name: 'testing', upload.toString());
+    log(name: 'testing1', upload.runtimeType.toString());
     if (upload is MultipartFormDataUpload) {
       return (await _platform.invokeMethod<String>('enqueue', {
         'url': upload.url,

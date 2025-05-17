@@ -3,25 +3,28 @@ package com.bluechilli.flutteruploader;
 import static com.bluechilli.flutteruploader.MethodCallHandlerImpl.FLUTTER_UPLOAD_WORK_TAG;
 
 import android.content.Context;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
+
 import com.bluechilli.flutteruploader.plugin.CachingStreamHandler;
 import com.bluechilli.flutteruploader.plugin.StatusListener;
 import com.bluechilli.flutteruploader.plugin.UploadObserver;
-import io.flutter.embedding.engine.plugins.FlutterPlugin;
-import io.flutter.plugin.common.BinaryMessenger;
-import io.flutter.plugin.common.EventChannel;
-import io.flutter.plugin.common.MethodChannel;
-import io.flutter.plugin.common.PluginRegistry.Registrar;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import io.flutter.embedding.engine.plugins.FlutterPlugin;
+import io.flutter.plugin.common.BinaryMessenger;
+import io.flutter.plugin.common.EventChannel;
+import io.flutter.plugin.common.MethodChannel;
 
 /** FlutterUploaderPlugin */
 public class FlutterUploaderPlugin implements FlutterPlugin, StatusListener {
@@ -41,17 +44,8 @@ public class FlutterUploaderPlugin implements FlutterPlugin, StatusListener {
   private EventChannel resultEventChannel;
   private final CachingStreamHandler<Map<String, Object>> resultStreamHandler =
       new CachingStreamHandler<>();
-  private LiveData<List<WorkInfo>> workInfoLiveData;
 
-  public static void registerWith(Registrar registrar) {
-    final FlutterUploaderPlugin plugin = new FlutterUploaderPlugin();
-    plugin.startListening(registrar.context(), registrar.messenger());
-    registrar.addViewDestroyListener(
-        view -> {
-          plugin.stopListening();
-          return false;
-        });
-  }
+  private LiveData<List<WorkInfo>> workInfoLiveData;
 
   @Override
   public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
@@ -84,10 +78,12 @@ public class FlutterUploaderPlugin implements FlutterPlugin, StatusListener {
   }
 
   private void stopListening() {
-    channel.setMethodCallHandler(null);
-    channel = null;
+    if (channel != null) {
+      channel.setMethodCallHandler(null);
+      channel = null;
+    }
 
-    if (uploadObserver != null) {
+    if (uploadObserver != null && workInfoLiveData != null) {
       workInfoLiveData.removeObserver(uploadObserver);
       workInfoLiveData = null;
       uploadObserver = null;
@@ -95,11 +91,15 @@ public class FlutterUploaderPlugin implements FlutterPlugin, StatusListener {
 
     methodCallHandler = null;
 
-    progressEventChannel.setStreamHandler(null);
-    progressEventChannel = null;
+    if (progressEventChannel != null) {
+      progressEventChannel.setStreamHandler(null);
+      progressEventChannel = null;
+    }
 
-    resultEventChannel.setStreamHandler(null);
-    resultEventChannel = null;
+    if (resultEventChannel != null) {
+      resultEventChannel.setStreamHandler(null);
+      resultEventChannel = null;
+    }
 
     progressStreamHandler.clear();
     resultStreamHandler.clear();

@@ -1,6 +1,7 @@
 library flutter_uploader;
 
 import 'dart:async';
+import 'dart:developer';
 import 'dart:ui' show PluginUtilities;
 
 import 'package:equatable/equatable.dart';

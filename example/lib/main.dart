@@ -43,9 +43,10 @@ void backgroundHandler() {
               channelDescription:
                   'Installed when you activate the Flutter Uploader Example',
               progress: progress.progress ?? 0,
-              icon: 'ic_upload',
+              // icon: 'ic_upload',
               enableVibration: false,
-              importance: Importance.low,
+              icon: "@mipmap/ic_launcher",
+              importance: Importance.max,
               showProgress: true,
               onlyAlertOnce: true,
               maxProgress: 100,
@@ -90,8 +91,8 @@ void backgroundHandler() {
             icon: 'ic_upload',
             enableVibration: !successful,
             importance: result.status == UploadTaskStatus.failed
-                ? Importance.high
-                : Importance.min,
+                ? Importance.max
+                : Importance.max,
           ),
           iOS: const DarwinNotificationDetails(
             presentAlert: true,
@@ -137,7 +138,7 @@ class _AppState extends State<App> {
 
     var flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
     var initializationSettingsAndroid =
-        const AndroidInitializationSettings('ic_upload');
+        const AndroidInitializationSettings('@mipmap/ic_launcher');
     var initializationSettingsIOS = DarwinInitializationSettings(
       requestSoundPermission: false,
       requestBadgePermission: false,

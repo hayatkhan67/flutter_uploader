@@ -1,0 +1,2 @@
+/Users/hayatkhan/projects/flutter_uploader/example/android/app/.cxx/Debug/p3c2xw6i/x86/CMakeFiles/edit_cache.dir
+/Users/hayatkhan/projects/flutter_uploader/example/android/app/.cxx/Debug/p3c2xw6i/x86/CMakeFiles/rebuild_cache.dir
