@@ -85,7 +85,6 @@ public class MethodCallHandlerImpl implements MethodCallHandler {
     result.success(null);
   }
 
-  // <-- Your new enqueue method here -->
   private void enqueue(MethodCall call, MethodChannel.Result result) {
     String url = call.argument("url");
     String method = call.argument("method");
@@ -98,49 +97,54 @@ public class MethodCallHandlerImpl implements MethodCallHandler {
       result.error("invalid_flag", "allowCellular must be set", null);
       return;
     }
+
     if (method == null) {
       method = "POST";
     }
+
     if (files == null || files.isEmpty()) {
       result.error("invalid_call", "Invalid call parameters passed", null);
       return;
     }
+
     if (!VALID_HTTP_METHODS.contains(method.toUpperCase())) {
       result.error("invalid_method", "Method must be either POST | PUT | PATCH", null);
       return;
     }
 
     List<FileItem> items = new ArrayList<>();
+
     for (Map<String, String> file : files) {
       items.add(FileItem.fromJson(file));
     }
 
-    UploadTask task = new UploadTask(
-      url,
-      method,
-      items,
-      headers,
-      parameters,
-      connectionTimeout,
-      false,
-      tag,
-      allowCellular
-    );
-
-    WorkRequest request = buildRequest(task);
+    WorkRequest request =
+        buildRequest(
+            new UploadTask(
+                url,
+                method,
+                items,
+                headers,
+                parameters,
+                connectionTimeout,
+                false,
+                tag,
+                allowCellular));
 
     WorkManager.getInstance(context)
         .enqueue(request)
         .getResult()
-        .addListener(() -> {
-          String taskId = request.getId().toString();
-          mainExecutor.execute(() -> {
-            result.success(taskId);
-            statusListener.onUpdateProgress(taskId, UploadStatus.ENQUEUED, 0);
-          });
-        }, workManagerExecutor);
+        .addListener(
+            () -> {
+              String taskId = request.getId().toString();
+              mainExecutor.execute(
+                  () -> {
+                    result.success(taskId);
+                    statusListener.onUpdateProgress(taskId, UploadStatus.ENQUEUED, 0);
+                  });
+            },
+            workManagerExecutor);
   }
-  // <-- End of enqueue method -->
 
   private void enqueueBinary(MethodCall call, MethodChannel.Result result) {
     String url = call.argument("url");
